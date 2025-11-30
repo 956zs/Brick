@@ -55,8 +55,17 @@ class MarkdownPaperParser {
     // 處理公式區塊 $$...$$ → equation div
     html = html.replace(/\$\$([^$]+)\$\$/g, '<div class="equation">$1</div>');
 
+    // 處理圖片 ![alt](url){options}
+    html = this.parseImages(html);
+
     // 處理分頁符號 ---
     html = html.replace(/^---$/gm, '<div class="page-break"></div>');
+
+    // 處理聊天紀錄區塊 :::chat{title="..."}...:::
+    html = this.parseChatBlock(html);
+
+    // 處理目錄區塊 :::toc{title="..."}...:::
+    html = this.parseTocBlock(html);
 
     // 處理標題
     html = html.replace(/^# (.+)$/gm, (_, title) => {
@@ -70,6 +79,15 @@ class MarkdownPaperParser {
       return `<div class="title">${title}</div>`;
     });
 
+    // ## 章節標題 → h1 (帶 id)
+    html = html.replace(/^## (\d+)\. (.+)$/gm, (_, num, title) => {
+      return `<h1 id="sec-${num}">${num}. ${title}</h1>`;
+    });
+    // ## 附錄/參考文獻等特殊標題
+    html = html.replace(/^## (附錄 Z.*)$/gm, '<h1 id="sec-z">$1</h1>');
+    html = html.replace(/^## (參考文獻.*)$/gm, '<h1 id="sec-ref">$1</h1>');
+    html = html.replace(/^## (結語.*)$/gm, '<h1 id="sec-end">$1</h1>');
+    // ## 其他標題（無 id）
     html = html.replace(/^## (.+)$/gm, "<h1>$1</h1>");
     html = html.replace(/^### (.+)$/gm, "<h2>$1</h2>");
     html = html.replace(/^#### (.+)$/gm, "<h3>$1</h3>");
@@ -90,6 +108,12 @@ class MarkdownPaperParser {
 
     // 處理有序列表
     html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
+
+    // 處理 hover 吐槽 ~~text~~{吐槽內容}
+    html = html.replace(
+      /~~([^~]+)~~\{([^}]+)\}/g,
+      '<span class="roast-text" data-roast="$2">$1</span>'
+    );
 
     // 處理螢光標記 ==text==
     html = html.replace(
@@ -261,6 +285,138 @@ class MarkdownPaperParser {
       refContent = refContent.replace(/<ul>|<\/ul>/g, "");
       html = html.replace(refMatch[1], refContent);
     }
+    return html;
+  }
+
+  // 聊天紀錄解析
+  // 語法：:::chat{title="標題"}...:::
+  // @meta 描述
+  // @username[時間] 訊息
+  // @username[時間]! 重點訊息（高亮）
+  parseChatBlock(html) {
+    // 用戶配置：ID -> { name, gradient (兩色漸變) }
+    const users = {
+      maboroshi22: {
+        name: "黒幻₂₂",
+        gradient: "linear-gradient(90deg, #ffc6d5, #ff9cbf, #ffc6d5, #ff9cbf)",
+      },
+      kaze: {
+        name: "月村手まりまり",
+        gradient: "linear-gradient(90deg, #ffc6d5, #ff9cbf, #ffc6d5, #ff9cbf)",
+      },
+      yoyo2007: {
+        name: "林秋",
+        gradient: "linear-gradient(90deg, #ffc6d5, #ff9cbf, #ffc6d5, #ff9cbf)",
+      },
+    };
+
+    const chatRegex = /:::chat\{title="([^"]+)"\}\n([\s\S]*?):::/g;
+
+    return html.replace(chatRegex, (_, title, content) => {
+      let chatHtml = `
+<details class="chat-details">
+<summary>${title}</summary>
+<div class="chat-log">
+<div class="chat-header">`;
+
+      const lines = content.trim().split("\n");
+      let headerDone = false;
+
+      for (const line of lines) {
+        // @meta 行
+        if (line.startsWith("@meta ")) {
+          const metaText = line.substring(6);
+          chatHtml += `<div class="chat-meta">${metaText}</div>`;
+          continue;
+        }
+
+        // 結束 header
+        if (!headerDone && !line.startsWith("@meta ")) {
+          chatHtml += `</div>`;
+          headerDone = true;
+        }
+
+        // @username[時間] 訊息 或 @username[時間]! 重點訊息
+        const msgMatch = line.match(/^@(\w+)\[([^\]]+)\](!?)\s*(.*)$/);
+        if (msgMatch) {
+          const [, userId, time, isHighlight, text] = msgMatch;
+          const user = users[userId] || {
+            name: userId,
+            gradient: "linear-gradient(90deg, #5865f2, #7289da, #5865f2)",
+          };
+          const highlightClass = isHighlight ? " highlight-message" : "";
+
+          chatHtml += `
+<div class="chat-message${highlightClass}" data-user="${userId}">
+  <img class="chat-avatar" src="assets/avatars/${userId}.png" alt="${user.name}" onerror="this.style.display='none'">
+  <div class="chat-content">
+    <div class="chat-username gradient-name" style="--gradient: ${user.gradient};">${user.name} <span class="chat-time">${time}</span></div>
+    <div class="chat-text">${text}</div>
+  </div>
+</div>`;
+        }
+      }
+
+      chatHtml += `
+</div>
+</details>`;
+
+      return chatHtml;
+    });
+  }
+
+  // 目錄區塊解析
+  // 語法：:::toc{title="標題"}...:::
+  parseTocBlock(html) {
+    const tocRegex = /:::toc\{title="([^"]+)"\}\n([\s\S]*?):::/g;
+
+    return html.replace(tocRegex, (_, title, content) => {
+      let tocHtml = `
+<details class="toc-details" open>
+<summary>${title}</summary>
+<nav class="toc-nav">`;
+
+      const lines = content.trim().split("\n");
+      for (const line of lines) {
+        // - [文字](#anchor)
+        const linkMatch = line.match(/^- \[([^\]]+)\]\(#([^)]+)\)$/);
+        if (linkMatch) {
+          const [, text, anchor] = linkMatch;
+          tocHtml += `<a class="toc-link" href="#${anchor}">${text}</a>`;
+        }
+      }
+
+      tocHtml += `
+</nav>
+</details>`;
+
+      return tocHtml;
+    });
+  }
+
+  // 圖片解析
+  // ![alt](url)           → 基本圖片
+  // ![alt](url){w=寬}     → 指定寬度
+  // ![alt](url){caption}  → 帶標題
+  parseImages(html) {
+    // ![alt](url){w=數字} - 指定寬度
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)\{w=(\d+)\}/g,
+      '<figure class="md-figure"><img src="$2" alt="$1" style="width: $3px; max-width: 100%;"></figure>'
+    );
+
+    // ![alt](url){caption文字} - 帶標題
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)\{([^}]+)\}/g,
+      '<figure class="md-figure"><img src="$2" alt="$1"><figcaption>$3</figcaption></figure>'
+    );
+
+    // ![alt](url) - 基本圖片
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<figure class="md-figure"><img src="$2" alt="$1"></figure>'
+    );
+
     return html;
   }
 }

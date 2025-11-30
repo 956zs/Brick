@@ -253,6 +253,85 @@ document.querySelectorAll(".joke-highlight").forEach((el) => {
   });
 });
 
+// Roast tooltip - 用滑鼠位置定位，解決跨行問題
+(function setupRoastTooltips() {
+  const roastElements = document.querySelectorAll(".roast-text");
+  if (roastElements.length === 0) return;
+
+  // 建立 tooltip 元素
+  const tooltip = document.createElement("div");
+  tooltip.className = "roast-tooltip";
+  document.body.appendChild(tooltip);
+
+  let currentTarget = null;
+  let mouseX = 0;
+
+  roastElements.forEach((el) => {
+    el.addEventListener("mouseenter", function (e) {
+      const text = this.getAttribute("data-roast");
+      if (!text) return;
+
+      currentTarget = this;
+      mouseX = e.clientX;
+
+      tooltip.textContent = "「" + text + "」";
+      showTooltip(e.clientX, e.clientY);
+    });
+
+    el.addEventListener("mousemove", function (e) {
+      if (currentTarget === this) {
+        mouseX = e.clientX;
+      }
+    });
+
+    el.addEventListener("mouseleave", function () {
+      tooltip.classList.remove("show");
+      currentTarget = null;
+    });
+  });
+
+  function showTooltip(x, y) {
+    // 先顯示以取得尺寸
+    tooltip.style.opacity = "0";
+    tooltip.classList.add("show");
+
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const margin = 12;
+
+    // 用滑鼠 X 位置為中心
+    let left = x - tooltipRect.width / 2;
+    // Y 位置在滑鼠上方
+    let top = y - tooltipRect.height - 15;
+
+    // 箭頭預設在中間
+    let arrowLeft = 50;
+
+    // 確保不超出左邊界
+    if (left < margin) {
+      const shift = margin - left;
+      arrowLeft = 50 - (shift / tooltipRect.width) * 100;
+      left = margin;
+    }
+
+    // 確保不超出右邊界
+    if (left + tooltipRect.width > window.innerWidth - margin) {
+      const shift = left + tooltipRect.width - (window.innerWidth - margin);
+      arrowLeft = 50 + (shift / tooltipRect.width) * 100;
+      left = window.innerWidth - tooltipRect.width - margin;
+    }
+
+    // 如果上方空間不夠，顯示在下方
+    if (top < margin) {
+      top = y + 20;
+    }
+
+    tooltip.style.top = top + "px";
+    tooltip.style.left = left + "px";
+    tooltip.style.setProperty("--arrow-left", arrowLeft + "%");
+    tooltip.style.opacity = "";
+  }
+})();
+
 // 觸控裝置的觸覺反饋模擬
 if ("vibrate" in navigator) {
   document.querySelectorAll(".joke-highlight, .equation").forEach((el) => {

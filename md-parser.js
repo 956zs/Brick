@@ -1,37 +1,73 @@
 /**
  * Markdown 論文解析器
  *
- * 支援語法：
+ * ═══════════════════════════════════════════════════════════════
+ * 支援語法一覽
+ * ═══════════════════════════════════════════════════════════════
  *
- * 文字格式：
- *   ==text==        → 螢光標記 (joke-highlight)
- *   *text*          → 諷刺斜體 (sarcasm)，hover 顯示隨機 emoji
- *   **text**        → 粗體
- *   `code`          → 行內程式碼
+ * 【文字格式】
+ *   ==text==              → 螢光標記 (joke-highlight)
+ *   ~~text~~{吐槽}        → hover 顯示吐槽 tooltip (roast-text)
+ *   ==~~text~~{吐槽}==    → 螢光 + 吐槽（嵌套）
+ *   ~~==text==~~{吐槽}    → 吐槽 + 螢光（嵌套）
+ *   *text*                → 諷刺斜體 (sarcasm)，hover 顯示隨機 emoji
+ *   **text**              → 粗體
+ *   `code`                → 行內程式碼
  *
- * 區塊元素：
- *   # 標題          → 論文主標題（自動換行處理）
- *   ## 標題         → h1 章節標題
- *   ### 標題        → h2 小節標題
- *   #### 標題       → h3 子標題
- *   > 引用          → 引用區塊（支援多行）
- *   - 項目          → 無序列表
- *   1. 項目         → 有序列表
- *   ---             → 分頁符號
+ * 【標題層級】
+ *   # 標題                → 論文主標題（自動換行處理）
+ *   ## N. 標題            → h1 章節標題，自動加 id="sec-N"
+ *   ## 附錄 Z...          → h1，id="sec-z"
+ *   ## 參考文獻           → h1，id="sec-ref"
+ *   ### 標題              → h2 小節標題
+ *   #### 標題             → h3 子標題
  *
- * 特殊區塊：
- *   $$equation$$    → 公式區塊
- *   ```code```      → 程式碼區塊（保留格式）
- *   | A | B |       → 表格（需要分隔行 |---|---|）
+ * 【區塊元素】
+ *   > 引用                → 引用區塊（支援多行連續 >）
+ *   - 項目                → 無序列表
+ *   1. 項目               → 有序列表
+ *   ---                   → 分頁符號
  *
- * HTML 直接支援：
- *   <details>       → 折疊區塊
- *   <summary>       → 折疊標題
+ * 【特殊區塊】
+ *   $$equation$$          → 公式區塊
+ *   ```lang               → 程式碼區塊（保留格式）
+ *   code
+ *   ```
+ *   | A | B |             → 表格（需要分隔行 |---|---|）
+ *   |---|---|
+ *   | 1 | 2 |
  *
- * 特殊處理：
+ * 【自定義區塊】
+ *   :::toc{title="標題"}  → 目錄區塊（可展開）
+ *   - [文字](#anchor)
+ *   :::
+ *
+ *   :::chat{title="標題"} → 聊天紀錄區塊（Discord 風格）
+ *   @meta 描述文字
+ *   @userId[時間] 訊息
+ *   @userId[時間]! 重點訊息（高亮）
+ *   :::
+ *
+ * 【圖片】
+ *   ![alt](url)           → 基本圖片
+ *   ![alt](url){w=寬}     → 指定寬度（如 {w=333}）
+ *   ![alt](url){caption}  → 帶標題的圖片
+ *
+ * 【HTML 直接支援】
+ *   <details>             → 折疊區塊
+ *   <summary>             → 折疊標題
+ *
+ * 【自動處理】
  *   - 摘要章節自動包裝成 abstract 區塊
  *   - 參考文獻自動格式化
  *   - 英文副標題自動識別
+ *
+ * 【聊天用戶配置】（在 parseChatBlock 中定義）
+ *   maboroshi22  → 黒幻₂₂
+ *   kaze         → 月村手まりまり
+ *   yoyo2007     → 林秋
+ *
+ * ═══════════════════════════════════════════════════════════════
  */
 
 class MarkdownPaperParser {
@@ -90,8 +126,17 @@ class MarkdownPaperParser {
     // 處理公式區塊 $...$ → equation div
     html = html.replace(/\$\$([^$]+)\$\$/g, '<div class="equation">$1</div>');
 
+    // 處理圖片 ![alt](url){options}
+    html = this.parseImages(html);
+
     // 處理分頁符號 ---
     html = html.replace(/^---$/gm, '<div class="page-break"></div>');
+
+    // 處理聊天紀錄區塊 :::chat{title="..."}...:::
+    html = this.parseChatBlock(html);
+
+    // 處理目錄區塊 :::toc{title="..."}...:::
+    html = this.parseTocBlock(html);
 
     // 處理標題
     // # 主標題 → title
@@ -106,7 +151,13 @@ class MarkdownPaperParser {
       return `<div class="title">${title}</div>`;
     });
 
-    // ## 章節標題 → h1
+    // ## 章節標題 → h1 (帶 id)
+    html = html.replace(/^## (\d+)\. (.+)$/gm, (_, num, title) => {
+      return `<h1 id="sec-${num}">${num}. ${title}</h1>`;
+    });
+    html = html.replace(/^## (附錄 Z.*)$/gm, '<h1 id="sec-z">$1</h1>');
+    html = html.replace(/^## (參考文獻.*)$/gm, '<h1 id="sec-ref">$1</h1>');
+    html = html.replace(/^## (結語.*)$/gm, '<h1 id="sec-end">$1</h1>');
     html = html.replace(/^## (.+)$/gm, "<h1>$1</h1>");
 
     // ### 小節標題 → h2
@@ -139,7 +190,26 @@ class MarkdownPaperParser {
       return `__PRE_BLOCK_${preBlocks.length - 1}__`;
     });
 
-    // 處理螢光標記 ==text==
+    // 處理嵌套標記：==~~text~~{吐槽}== 或 ~~==text==~~{吐槽}
+    // 先處理外層是螢光、內層是吐槽：==~~text~~{吐槽}==
+    html = html.replace(
+      /==~~([^~]+)~~\{([^}]+)\}==/g,
+      '<span class="joke-highlight"><span class="roast-text" data-roast="$2">$1</span></span>'
+    );
+
+    // 處理外層是吐槽、內層是螢光：~~==text==~~{吐槽}
+    html = html.replace(
+      /~~==([^=]+)==~~\{([^}]+)\}/g,
+      '<span class="roast-text" data-roast="$2"><span class="joke-highlight">$1</span></span>'
+    );
+
+    // 處理單獨的 hover 吐槽 ~~text~~{吐槽內容}
+    html = html.replace(
+      /~~([^~]+)~~\{([^}]+)\}/g,
+      '<span class="roast-text" data-roast="$2">$1</span>'
+    );
+
+    // 處理單獨的螢光標記 ==text==
     html = html.replace(
       /==([^=]+)==/g,
       '<span class="joke-highlight">$1</span>'
@@ -317,6 +387,107 @@ class MarkdownPaperParser {
     return html;
   }
 
+  // 聊天紀錄解析
+  parseChatBlock(html) {
+    const users = {
+      maboroshi22: {
+        name: "黒幻₂₂",
+        gradient: "linear-gradient(90deg, #ffc6d5, #ff9cbf, #ffc6d5, #ff9cbf)",
+      },
+      kaze: {
+        name: "月村手まりまり",
+        gradient: "linear-gradient(90deg, #ffc6d5, #ff9cbf, #ffc6d5, #ff9cbf)",
+      },
+      yoyo2007: {
+        name: "林秋",
+        gradient: "linear-gradient(90deg, #ffc6d5, #ff9cbf, #ffc6d5, #ff9cbf)",
+      },
+    };
+
+    const chatRegex = /:::chat\{title="([^"]+)"\}\n([\s\S]*?):::/g;
+
+    return html.replace(chatRegex, (_, title, content) => {
+      let chatHtml = `<details class="chat-details"><summary>${title}</summary><div class="chat-log"><div class="chat-header">`;
+
+      const lines = content.trim().split("\n");
+      let headerDone = false;
+
+      for (const line of lines) {
+        if (line.startsWith("@meta ")) {
+          chatHtml += `<div class="chat-meta">${line.substring(6)}</div>`;
+          continue;
+        }
+
+        if (!headerDone && !line.startsWith("@meta ")) {
+          chatHtml += `</div>`;
+          headerDone = true;
+        }
+
+        const msgMatch = line.match(/^@(\w+)\[([^\]]+)\](!?)\s*(.*)$/);
+        if (msgMatch) {
+          const [, userId, time, isHighlight, text] = msgMatch;
+          const user = users[userId] || {
+            name: userId,
+            gradient: "linear-gradient(90deg, #5865f2, #7289da, #5865f2)",
+          };
+          const highlightClass = isHighlight ? " highlight-message" : "";
+
+          chatHtml += `<div class="chat-message${highlightClass}" data-user="${userId}">
+            <img class="chat-avatar" src="assets/avatars/${userId}.png" alt="${user.name}" onerror="this.style.display='none'">
+            <div class="chat-content">
+              <div class="chat-username gradient-name" style="--gradient: ${user.gradient};">${user.name} <span class="chat-time">${time}</span></div>
+              <div class="chat-text">${text}</div>
+            </div>
+          </div>`;
+        }
+      }
+
+      chatHtml += `</div></details>`;
+      return chatHtml;
+    });
+  }
+
+  // 目錄區塊解析
+  parseTocBlock(html) {
+    const tocRegex = /:::toc\{title="([^"]+)"\}\n([\s\S]*?):::/g;
+
+    return html.replace(tocRegex, (_, title, content) => {
+      let tocHtml = `<details class="toc-details" open><summary>${title}</summary><nav class="toc-nav">`;
+
+      const lines = content.trim().split("\n");
+      for (const line of lines) {
+        const linkMatch = line.match(/^- \[([^\]]+)\]\(#([^)]+)\)$/);
+        if (linkMatch) {
+          const [, text, anchor] = linkMatch;
+          tocHtml += `<a class="toc-link" href="#${anchor}">${text}</a>`;
+        }
+      }
+
+      tocHtml += `</nav></details>`;
+      return tocHtml;
+    });
+  }
+
+  // 圖片解析
+  parseImages(html) {
+    // ![alt](url){w=數字} - 指定寬度
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)\{w=(\d+)\}/g,
+      '<figure class="md-figure"><img src="$2" alt="$1" style="width: $3px; max-width: 100%;"></figure>'
+    );
+    // ![alt](url){caption文字} - 帶標題
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)\{([^}]+)\}/g,
+      '<figure class="md-figure"><img src="$2" alt="$1"><figcaption>$3</figcaption></figure>'
+    );
+    // ![alt](url) - 基本圖片
+    html = html.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      '<figure class="md-figure"><img src="$2" alt="$1"></figure>'
+    );
+    return html;
+  }
+
   initEffects() {
     const observerOptions = {
       threshold: 0.2,
@@ -342,6 +513,9 @@ class MarkdownPaperParser {
         this.style.animation = "bounce 0.5s ease";
       });
     });
+
+    // Roast tooltip 動態定位
+    this.setupRoastTooltips();
 
     // 諷刺斜體隨機 emoji
     const sarcasmEmojis = [
@@ -397,6 +571,86 @@ class MarkdownPaperParser {
     `;
     document.body.appendChild(el);
     setTimeout(() => el.remove(), 3000);
+  }
+
+  setupRoastTooltips() {
+    // 建立共用的 tooltip 元素
+    const tooltip = document.createElement("div");
+    tooltip.className = "roast-tooltip";
+    document.body.appendChild(tooltip);
+
+    let currentTarget = null;
+
+    document.querySelectorAll(".roast-text").forEach((el) => {
+      el.addEventListener("mouseenter", function (e) {
+        const roastText = this.getAttribute("data-roast");
+        if (!roastText) return;
+
+        tooltip.textContent = roastText;
+        tooltip.classList.add("show");
+        currentTarget = this;
+
+        // 計算位置
+        const rect = this.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        let top = rect.top - tooltipRect.height - 10;
+        let left = rect.left + rect.width / 2 - tooltipRect.width / 2;
+
+        // 如果超出上方，改為顯示在下方
+        if (top < 10) {
+          top = rect.bottom + 10;
+        }
+
+        // 確保不超出左右邊界
+        if (left < 10) left = 10;
+        if (left + tooltipRect.width > window.innerWidth - 10) {
+          left = window.innerWidth - tooltipRect.width - 10;
+        }
+
+        tooltip.style.top = top + "px";
+        tooltip.style.left = left + "px";
+      });
+
+      el.addEventListener("mouseleave", function () {
+        tooltip.classList.remove("show");
+        currentTarget = null;
+      });
+
+      // 手機版點擊切換
+      el.addEventListener("click", function (e) {
+        if (window.innerWidth <= 768) {
+          e.preventDefault();
+          const roastText = this.getAttribute("data-roast");
+          if (!roastText) return;
+
+          if (currentTarget === this && tooltip.classList.contains("show")) {
+            tooltip.classList.remove("show");
+            currentTarget = null;
+          } else {
+            tooltip.textContent = roastText;
+            tooltip.classList.add("show");
+            currentTarget = this;
+
+            // 手機版置中顯示
+            tooltip.style.top = "50%";
+            tooltip.style.left = "50%";
+            tooltip.style.transform = "translate(-50%, -50%) scale(1)";
+          }
+        }
+      });
+    });
+
+    // 點擊其他地方關閉 tooltip
+    document.addEventListener("click", (e) => {
+      if (
+        !e.target.classList.contains("roast-text") &&
+        window.innerWidth <= 768
+      ) {
+        tooltip.classList.remove("show");
+        currentTarget = null;
+      }
+    });
   }
 }
 

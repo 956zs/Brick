@@ -242,6 +242,96 @@ p {
     background: var(--highlight-hover);
 }
 
+/* 嵌套標記：螢光內的吐槽 */
+.joke-highlight .roast-text {
+    background: linear-gradient(135deg, #B8D8C8 0%, #98C8B5 100%);
+    border-bottom-color: #6AA88A;
+}
+
+.joke-highlight .roast-text:hover {
+    background: #6AA88A;
+}
+
+/* 嵌套標記：吐槽內的螢光 */
+.roast-text .joke-highlight {
+    background: rgba(232, 197, 197, 0.7);
+    padding: 1px 4px;
+}
+
+[data-theme="dark"] .joke-highlight .roast-text {
+    background: linear-gradient(135deg, #253530 0%, #304540 100%);
+}
+
+[data-theme="dark"] .roast-text .joke-highlight {
+    background: rgba(184, 152, 152, 0.5);
+    color: #EBE0E0;
+}
+
+/* Hover 吐槽 tooltip */
+.roast-text {
+    position: relative;
+    background: linear-gradient(135deg, #C5E8D5 0%, #A8D8C5 100%);
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: help;
+    color: #3A4A3A;
+    border-bottom: 2px dashed #7AB89A;
+    transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .roast-text {
+    background: linear-gradient(135deg, #2A4035 0%, #354A3F 100%);
+    color: #C5E8D5;
+    border-bottom-color: #7AB89A;
+}
+
+.roast-text:hover {
+    background: #7AB89A;
+    color: white;
+}
+
+[data-theme="dark"] .roast-text:hover {
+    background: #5A9878;
+    color: white;
+}
+
+/* Roast tooltip - JS 建立的 fixed 定位元素 */
+.roast-tooltip {
+    position: fixed;
+    background: var(--text-color);
+    color: var(--paper-bg);
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1.4;
+    white-space: nowrap;
+    text-align: center;
+    z-index: 10000;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.roast-tooltip.show {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* 小三角箭頭 */
+.roast-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: var(--arrow-left, 50%);
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-top-color: var(--text-color);
+}
+
 .sarcasm {
     font-style: italic;
     color: var(--text-muted);
@@ -1001,5 +1091,374 @@ details .md-table td:nth-child(2) {
 
     details .details-content {
         padding: 15px;
+    }
+}
+
+/* 聊天紀錄展開區塊 */
+.chat-details {
+    background: transparent;
+    border: none;
+    margin: 25px 0;
+}
+
+.chat-details summary {
+    background: linear-gradient(135deg, #5865f2 0%, #4752c4 100%);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 11pt;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(88, 101, 242, 0.3);
+}
+
+.chat-details summary:hover {
+    background: linear-gradient(135deg, #4752c4 0%, #3c45a5 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(88, 101, 242, 0.4);
+}
+
+.chat-details summary::before {
+    content: "💬";
+    margin-right: 8px;
+}
+
+.chat-details[open] summary {
+    border-radius: 10px 10px 0 0;
+    background: linear-gradient(135deg, #4752c4 0%, #3c45a5 100%);
+}
+
+/* 聊天紀錄容器 */
+.chat-log {
+    background: linear-gradient(180deg, #36393f 0%, #2f3136 100%);
+    border-radius: 0 0 12px 12px;
+    padding: 0;
+    font-family: 'Whitney', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    color: #dcddde;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border: 1px solid #202225;
+    border-top: none;
+    overflow: hidden;
+}
+
+/* 聊天紀錄標頭 */
+.chat-header {
+    background: #202225;
+    padding: 15px 20px;
+    border-bottom: 1px solid #40444b;
+}
+
+.chat-meta {
+    font-size: 9pt;
+    color: #72767d;
+    margin-bottom: 4px;
+}
+
+.chat-meta:last-child {
+    margin-bottom: 0;
+}
+
+/* 單則訊息 */
+.chat-message {
+    display: flex;
+    align-items: flex-start;
+    padding: 12px 20px;
+    transition: background 0.1s ease;
+}
+
+.chat-message:hover {
+    background: rgba(4, 4, 5, 0.07);
+}
+
+/* 頭像 */
+.chat-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 15px;
+    flex-shrink: 0;
+    background: #5865f2;
+    object-fit: cover;
+}
+
+/* 頭像載入失敗時的預設樣式 */
+.chat-message[data-user="maboroshi22"] .chat-avatar {
+    background: linear-gradient(135deg, #ffc6d5 0%, #ff9cbf 100%);
+}
+
+.chat-message[data-user="kaze"] .chat-avatar {
+    background: linear-gradient(135deg, #ffc6d5 0%, #ff9cbf 100%);
+}
+
+.chat-message[data-user="yoyo2007"] .chat-avatar {
+    background: linear-gradient(135deg, #ffc6d5 0%, #ff9cbf 100%);
+}
+
+/* 訊息內容 */
+.chat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-username {
+    font-weight: 600;
+    font-size: 10pt;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+/* Discord 風格漸層流動用戶名 - 兩色漸變 */
+.chat-username.gradient-name {
+    background: var(--gradient);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientFlow 3s ease-in-out infinite;
+}
+
+@keyframes gradientFlow {
+
+    0%,
+    100% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.chat-time {
+    font-size: 8pt;
+    color: #72767d;
+    font-weight: 400;
+}
+
+.chat-text {
+    color: #dcddde;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+/* 重點訊息（磚頭砸死那句） */
+.highlight-message {
+    background: rgba(250, 166, 26, 0.1);
+    border-left: 3px solid #faa61a;
+}
+
+.highlight-message .chat-text {
+    color: #faa61a;
+}
+
+/* 聊天紀錄中的螢光標記 */
+.chat-log .joke-highlight {
+    background: #faa61a;
+    color: #36393f;
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+/* 聊天紀錄中的吐槽 */
+.chat-log .roast-text {
+    background: linear-gradient(135deg, #3ba55c 0%, #2d7d46 100%);
+    color: #fff;
+    border-bottom-color: #2d7d46;
+}
+
+.chat-log .roast-text:hover {
+    background: #2d7d46;
+}
+
+/* 響應式 */
+@media screen and (max-width: 768px) {
+    .chat-details summary {
+        padding: 12px 15px;
+        font-size: 10pt;
+    }
+
+    .chat-log {
+        font-size: 9pt;
+    }
+
+    .chat-message {
+        padding: 10px 15px;
+    }
+
+    .chat-avatar {
+        width: 32px;
+        height: 32px;
+        margin-right: 10px;
+    }
+
+    .chat-username {
+        font-size: 9pt;
+    }
+
+    .chat-time {
+        font-size: 7pt;
+    }
+
+    .chat-header {
+        padding: 12px 15px;
+    }
+}
+
+/* 目錄樣式 - 學術論文風格 */
+.toc-details {
+    background: var(--paper-bg);
+    border: 2px solid var(--border-color);
+    margin: 40px 0;
+    overflow: hidden;
+    page-break-inside: avoid;
+}
+
+.toc-details summary {
+    background: var(--paper-bg);
+    color: var(--text-color);
+    padding: 20px 30px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14pt;
+    text-align: center;
+    letter-spacing: 0.5em;
+    border-bottom: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+    list-style: none;
+}
+
+.toc-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.toc-details summary::before {
+    content: none;
+}
+
+.toc-details summary:hover {
+    background: var(--abstract-bg);
+}
+
+.toc-details[open] summary {
+    border-bottom: 2px solid var(--border-color);
+}
+
+.toc-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 25px 40px;
+    gap: 0;
+    max-height: 500px;
+    overflow-y: auto;
+    counter-reset: toc-counter;
+}
+
+.toc-link {
+    color: var(--text-color);
+    text-decoration: none;
+    padding: 10px 0;
+    font-size: 11pt;
+    transition: all 0.2s ease;
+    border-bottom: 1px dotted var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.toc-link:last-child {
+    border-bottom: none;
+}
+
+.toc-link:hover {
+    color: var(--btn-hover);
+    background: transparent;
+    padding-left: 10px;
+}
+
+/* 子項目縮排 */
+.toc-link.toc-sub {
+    padding-left: 30px;
+    font-size: 10pt;
+    color: var(--text-secondary);
+}
+
+.toc-link.toc-sub:hover {
+    padding-left: 40px;
+}
+
+/* 滾動條樣式 */
+.toc-nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.toc-nav::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.toc-nav::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.toc-nav::-webkit-scrollbar-thumb:hover {
+    background: var(--btn-bg);
+}
+
+/* 響應式 */
+@media screen and (max-width: 768px) {
+    .toc-nav {
+        max-height: 300px;
+        padding: 12px 15px;
+    }
+
+    .toc-link {
+        font-size: 9pt;
+        padding: 6px 10px;
+    }
+}
+
+/* 圖片樣式 */
+.md-figure {
+    margin: 20px auto;
+    text-align: center;
+    max-width: 100%;
+}
+
+.md-figure img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px var(--shadow-color);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.md-figure img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 25px var(--shadow-color);
+}
+
+.md-figure figcaption {
+    margin-top: 10px;
+    font-size: 9pt;
+    color: var(--text-hint);
+    font-style: italic;
+}
+
+/* 響應式圖片 */
+@media screen and (max-width: 768px) {
+    .md-figure {
+        margin: 15px auto;
+    }
+
+    .md-figure img {
+        border-radius: 6px;
+    }
+
+    .md-figure figcaption {
+        font-size: 8pt;
     }
 }
