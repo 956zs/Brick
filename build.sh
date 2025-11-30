@@ -98,6 +98,20 @@ cat > index.html << 'EOF'
     <button class="back-to-top" id="backToTop" aria-label="回到頂部">↑</button>
 
     <div class="paper" id="content">
+<div class="reading-stats" id="readingStats">
+  <div class="stats-row">
+    <span class="stat-item">📝 中文 <span id="charCount">0</span> 字</span>
+    <span class="stat-divider">|</span>
+    <span class="stat-item">🔤 英文 <span id="wordCount">0</span> 詞</span>
+    <span class="stat-divider">|</span>
+    <span class="stat-item">📖 預計閱讀 <span id="readTime">0</span> 分鐘</span>
+    <span class="stat-divider">|</span>
+    <span class="stat-item stat-absurd">🧠 理解時間 <span id="understandTime">∞</span></span>
+  </div>
+  <div class="stats-row stats-extra">
+    <span class="stat-item stat-small">⚠️ 閱讀本文可能導致：對學術界的信任崩塌、無法直視「100-1」、以及對磚頭產生不必要的同情</span>
+  </div>
+</div>
 EOF
 
 # 嵌入預渲染的內容

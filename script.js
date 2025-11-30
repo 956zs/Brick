@@ -1,10 +1,26 @@
 // 閱讀統計動態效果
 (function initReadingStats() {
-  const charCount = document.getElementById("charCount");
-  const readTime = document.getElementById("readTime");
-  const understandTime = document.getElementById("understandTime");
+  const charCountEl = document.getElementById("charCount");
+  const wordCountEl = document.getElementById("wordCount");
+  const readTimeEl = document.getElementById("readTime");
+  const understandTimeEl = document.getElementById("understandTime");
 
-  if (!charCount) return;
+  if (!charCountEl) return;
+
+  // 從頁面內容動態計算字數
+  const content = document.getElementById("content");
+  const text = content ? content.innerText : "";
+
+  // 計算中文字數（匹配中文字符）
+  const chineseChars = (text.match(/[\u4e00-\u9fff]/g) || []).length;
+
+  // 計算英文單字數（匹配連續英文字母）
+  const englishWords = (text.match(/[a-zA-Z]+/g) || []).length;
+
+  // 閱讀時間計算（基於研究數據）
+  // 中文：~260-315 字/分鐘，取 280 cpm（考慮專業術語會慢一點）
+  // 英文：~238-260 詞/分鐘，取 250 wpm
+  const readingMinutes = Math.ceil(chineseChars / 280 + englishWords / 250);
 
   // 數字跳動動畫
   function animateNumber(element, target, duration = 1500) {
@@ -14,7 +30,6 @@
     function update(currentTime) {
       const elapsed = currentTime - startTime;
       const progress = Math.min(elapsed / duration, 1);
-      // easeOutExpo
       const easeProgress = 1 - Math.pow(2, -10 * progress);
       const current = Math.floor(start + (target - start) * easeProgress);
       element.textContent = current.toLocaleString();
@@ -28,8 +43,9 @@
 
   // 延遲啟動動畫
   setTimeout(() => {
-    animateNumber(charCount, 18228);
-    animateNumber(readTime, 36);
+    animateNumber(charCountEl, chineseChars);
+    animateNumber(wordCountEl, englishWords);
+    animateNumber(readTimeEl, readingMinutes);
   }, 500);
 
   // 理解時間的荒謬動畫
@@ -43,15 +59,17 @@
     "放棄吧",
     "99年",
     "∞",
+    `${chineseChars}秒`,
+    "下輩子",
   ];
   let absurdIndex = 0;
 
   setInterval(() => {
     absurdIndex = (absurdIndex + 1) % absurdTimes.length;
-    understandTime.style.opacity = "0";
+    understandTimeEl.style.opacity = "0";
     setTimeout(() => {
-      understandTime.textContent = absurdTimes[absurdIndex];
-      understandTime.style.opacity = "1";
+      understandTimeEl.textContent = absurdTimes[absurdIndex];
+      understandTimeEl.style.opacity = "1";
     }, 200);
   }, 3000);
 })();
