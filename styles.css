@@ -68,7 +68,7 @@
 body {
     font-family: "Times New Roman", "SimSun", serif;
     line-height: 1.8;
-    max-width: 900px;
+    max-width: 960px;
     margin: 0 auto;
     padding: 20mm;
     background: var(--bg-color);
@@ -640,6 +640,8 @@ p {
     .title {
         font-size: 16pt;
         line-height: 1.4;
+        padding-top: 60px;
+        /* 避開懸浮按鈕 */
     }
 
     .subtitle {
@@ -714,6 +716,8 @@ p {
 
     .title {
         font-size: 14pt;
+        padding-top: 70px;
+        /* 小螢幕需要更多空間 */
     }
 
     .subtitle {
@@ -981,6 +985,12 @@ details .md-table {
 details .md-table th,
 details .md-table td {
     padding: 10px 12px;
+}
+
+/* 學科欄位不換行 */
+details .md-table td:nth-child(2) {
+    white-space: nowrap;
+    min-width: 80px;
 }
 
 @media screen and (max-width: 768px) {
