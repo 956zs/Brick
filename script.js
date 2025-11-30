@@ -1,3 +1,61 @@
+// 閱讀統計動態效果
+(function initReadingStats() {
+  const charCount = document.getElementById("charCount");
+  const readTime = document.getElementById("readTime");
+  const understandTime = document.getElementById("understandTime");
+
+  if (!charCount) return;
+
+  // 數字跳動動畫
+  function animateNumber(element, target, duration = 1500) {
+    const start = 0;
+    const startTime = performance.now();
+
+    function update(currentTime) {
+      const elapsed = currentTime - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // easeOutExpo
+      const easeProgress = 1 - Math.pow(2, -10 * progress);
+      const current = Math.floor(start + (target - start) * easeProgress);
+      element.textContent = current.toLocaleString();
+
+      if (progress < 1) {
+        requestAnimationFrame(update);
+      }
+    }
+    requestAnimationFrame(update);
+  }
+
+  // 延遲啟動動畫
+  setTimeout(() => {
+    animateNumber(charCount, 18228);
+    animateNumber(readTime, 36);
+  }, 500);
+
+  // 理解時間的荒謬動畫
+  const absurdTimes = [
+    "∞",
+    "看造化",
+    "3輩子",
+    "等磚頭回來",
+    "問哲學系",
+    "∞",
+    "放棄吧",
+    "99年",
+    "∞",
+  ];
+  let absurdIndex = 0;
+
+  setInterval(() => {
+    absurdIndex = (absurdIndex + 1) % absurdTimes.length;
+    understandTime.style.opacity = "0";
+    setTimeout(() => {
+      understandTime.textContent = absurdTimes[absurdIndex];
+      understandTime.style.opacity = "1";
+    }, 200);
+  }, 3000);
+})();
+
 // 主題切換功能
 const themeToggle = document.getElementById("themeToggle");
 const savedTheme = localStorage.getItem("theme") || "light";

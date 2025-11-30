@@ -84,6 +84,76 @@ body {
     transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* 閱讀統計區塊 */
+.reading-stats {
+    text-align: center;
+    padding: 15px 20px;
+    margin-bottom: 25px;
+    background: var(--abstract-bg);
+    border-radius: 8px;
+    border: 1px dashed var(--border-color);
+    font-size: 10pt;
+    color: var(--text-secondary);
+    opacity: 0;
+    animation: fadeInDown 0.6s ease 0.1s forwards;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stats-extra {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dotted var(--border-color);
+}
+
+.stat-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.stat-divider {
+    color: var(--text-hint);
+    margin: 0 5px;
+}
+
+.stat-absurd {
+    color: var(--btn-hover);
+    font-style: italic;
+}
+
+.stat-small {
+    font-size: 9pt;
+    color: var(--text-hint);
+    font-style: italic;
+}
+
+@media screen and (max-width: 768px) {
+    .reading-stats {
+        padding: 12px 15px;
+        font-size: 9pt;
+    }
+
+    .stat-divider {
+        display: none;
+    }
+
+    .stats-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .stat-small {
+        font-size: 8pt;
+    }
+}
+
 .title {
     text-align: center;
     font-size: 20pt;
