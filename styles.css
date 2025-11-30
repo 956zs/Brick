@@ -246,18 +246,21 @@ p {
     font-style: italic;
     color: var(--text-muted);
     position: relative;
+    cursor: help;
 }
 
 .sarcasm::after {
-    content: '😏';
+    content: attr(data-emoji);
     opacity: 0;
     position: absolute;
     right: -25px;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: scale(0.5);
 }
 
 .sarcasm:hover::after {
     opacity: 1;
+    transform: scale(1);
 }
 
 
@@ -318,6 +321,200 @@ p {
     }
 }
 
+/* 磚頭掉落動畫 */
+.falling-brick {
+    position: fixed;
+    top: -60px;
+    width: 50px;
+    height: auto;
+    z-index: 10000;
+    pointer-events: none;
+    animation: brickFall 1.5s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes brickFall {
+    0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+    }
+
+    70% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(calc(100vh + 100px)) rotate(720deg);
+        opacity: 0.8;
+    }
+}
+
+/* 撞擊粒子效果 */
+.brick-particle {
+    position: fixed;
+    bottom: 20px;
+    font-size: 20px;
+    z-index: 10001;
+    pointer-events: none;
+    animation: particleExplode 0.8s ease-out forwards;
+}
+
+@keyframes particleExplode {
+    0% {
+        transform: translate(0, 0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(calc(cos(var(--angle)) * var(--distance)),
+                calc(sin(var(--angle)) * var(--distance) - 50px)) scale(0);
+        opacity: 0;
+    }
+}
+
+/* 螢幕震動效果 */
+.screen-shake {
+    animation: shake 0.3s ease-in-out;
+}
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-5px) translateY(2px);
+    }
+
+    40% {
+        transform: translateX(5px) translateY(-2px);
+    }
+
+    60% {
+        transform: translateX(-3px) translateY(1px);
+    }
+
+    80% {
+        transform: translateX(3px) translateY(-1px);
+    }
+}
+
+/* 背景飄過的小磚頭 */
+.ambient-brick {
+    position: fixed;
+    right: -50px;
+    z-index: 1;
+    pointer-events: none;
+    animation: floatAcross linear forwards;
+}
+
+@keyframes floatAcross {
+    0% {
+        transform: translateX(0) rotate(0deg);
+    }
+
+    100% {
+        transform: translateX(calc(-100vw - 100px)) rotate(-360deg);
+    }
+}
+
+/* 磚頭歸零彩蛋 */
+.zero-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10001;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.zero-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--paper-bg);
+    padding: 40px 60px;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 10002;
+    text-align: center;
+    animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.zero-title {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.zero-text {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.zero-subtext {
+    font-size: 14px;
+    color: var(--text-hint);
+    margin-bottom: 25px;
+}
+
+.zero-btn {
+    background: var(--btn-bg);
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    font-size: 16px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.zero-btn:hover {
+    background: var(--btn-hover);
+    transform: scale(1.05);
+}
+
+@keyframes popIn {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes rainbow {
+    0% {
+        filter: hue-rotate(0deg);
+    }
+
+    100% {
+        filter: hue-rotate(360deg);
+    }
+}
+
 /* 回到頂部按鈕 */
 .back-to-top {
     position: fixed;
@@ -375,6 +572,9 @@ p {
     opacity: 0;
     transform: translateX(100px);
     transition: all 0.5s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    cursor: pointer;
 }
 
 .brick-counter.show {
@@ -564,5 +764,232 @@ p {
 
     .joke-highlight:active {
         background: var(--highlight-hover);
+    }
+}
+
+
+/* 載入中樣式 */
+.loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-hint);
+    font-size: 14pt;
+}
+
+/* 列表樣式 */
+ul,
+ol {
+    margin: 15px 0;
+    padding-left: 30px;
+}
+
+li {
+    margin-bottom: 8px;
+    font-size: 11pt;
+}
+
+/* 摘要內的關鍵字 */
+.abstract .keywords {
+    margin-top: 15px;
+    font-size: 10pt;
+}
+
+/* 表格樣式 */
+.md-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 10pt;
+    background: var(--paper-bg);
+    box-shadow: 0 2px 8px var(--shadow-color);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.md-table th,
+.md-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.md-table th {
+    background: var(--abstract-bg);
+    font-weight: bold;
+    color: var(--text-color);
+    border-bottom: 2px solid var(--border-color);
+}
+
+.md-table tbody tr:hover {
+    background: var(--abstract-bg);
+    transition: background 0.2s ease;
+}
+
+.md-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+/* 程式碼區塊樣式 */
+.code-block {
+    background: var(--abstract-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    overflow-x: auto;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 10pt;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--text-color);
+}
+
+.code-block code {
+    background: none;
+    padding: 0;
+    font-family: inherit;
+}
+
+/* 行內程式碼 */
+.inline-code {
+    background: var(--abstract-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 0.9em;
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+}
+
+/* 引用區塊樣式 */
+.quote-block {
+    background: var(--abstract-bg);
+    border-left: 4px solid var(--btn-bg);
+    padding: 15px 20px;
+    margin: 20px 0;
+    font-style: italic;
+    color: var(--text-secondary);
+    border-radius: 0 8px 8px 0;
+}
+
+.quote-block b {
+    color: var(--text-color);
+    font-style: normal;
+}
+
+/* 響應式表格 */
+@media screen and (max-width: 768px) {
+    .md-table {
+        font-size: 9pt;
+        display: block;
+        overflow-x: auto;
+    }
+
+    .md-table th,
+    .md-table td {
+        padding: 8px 10px;
+        white-space: nowrap;
+    }
+
+    .code-block {
+        padding: 12px 15px;
+        font-size: 9pt;
+    }
+
+    .quote-block {
+        padding: 12px 15px;
+    }
+}
+
+/* 折疊區塊樣式 */
+details {
+    background: var(--abstract-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin: 20px 0;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+details[open] {
+    box-shadow: 0 4px 15px var(--shadow-color);
+}
+
+details summary {
+    padding: 15px 20px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 11pt;
+    color: var(--text-color);
+    background: var(--abstract-bg);
+    border-bottom: 1px solid transparent;
+    transition: all 0.3s ease;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+details summary::-webkit-details-marker {
+    display: none;
+}
+
+details summary::before {
+    content: "▶";
+    font-size: 10px;
+    transition: transform 0.3s ease;
+    color: var(--btn-bg);
+}
+
+details[open] summary::before {
+    transform: rotate(90deg);
+}
+
+details[open] summary {
+    border-bottom: 1px solid var(--border-color);
+    background: var(--highlight-bg);
+}
+
+details summary:hover {
+    background: var(--highlight-bg);
+}
+
+details .details-content {
+    padding: 20px;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* 折疊區塊內的表格 */
+details .md-table {
+    margin: 10px 0;
+    font-size: 9.5pt;
+}
+
+details .md-table th,
+details .md-table td {
+    padding: 10px 12px;
+}
+
+@media screen and (max-width: 768px) {
+    details summary {
+        padding: 12px 15px;
+        font-size: 10pt;
+    }
+
+    details .details-content {
+        padding: 15px;
     }
 }

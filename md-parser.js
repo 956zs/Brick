@@ -1,0 +1,410 @@
+/**
+ * Markdown 論文解析器
+ *
+ * 支援語法：
+ *
+ * 文字格式：
+ *   ==text==        → 螢光標記 (joke-highlight)
+ *   *text*          → 諷刺斜體 (sarcasm)，hover 顯示隨機 emoji
+ *   **text**        → 粗體
+ *   `code`          → 行內程式碼
+ *
+ * 區塊元素：
+ *   # 標題          → 論文主標題（自動換行處理）
+ *   ## 標題         → h1 章節標題
+ *   ### 標題        → h2 小節標題
+ *   #### 標題       → h3 子標題
+ *   > 引用          → 引用區塊（支援多行）
+ *   - 項目          → 無序列表
+ *   1. 項目         → 有序列表
+ *   ---             → 分頁符號
+ *
+ * 特殊區塊：
+ *   $$equation$$    → 公式區塊
+ *   ```code```      → 程式碼區塊（保留格式）
+ *   | A | B |       → 表格（需要分隔行 |---|---|）
+ *
+ * HTML 直接支援：
+ *   <details>       → 折疊區塊
+ *   <summary>       → 折疊標題
+ *
+ * 特殊處理：
+ *   - 摘要章節自動包裝成 abstract 區塊
+ *   - 參考文獻自動格式化
+ *   - 英文副標題自動識別
+ */
+
+class MarkdownPaperParser {
+  constructor(options = {}) {
+    this.options = {
+      contentFile: "./content.md",
+      targetElement: "#content",
+      ...options,
+    };
+  }
+
+  async load() {
+    try {
+      const response = await fetch(this.options.contentFile);
+      if (!response.ok) throw new Error("無法載入 Markdown 檔案");
+      const markdown = await response.text();
+      const html = this.parse(markdown);
+      document.querySelector(this.options.targetElement).innerHTML = html;
+      this.initEffects();
+    } catch (error) {
+      console.error("載入失敗:", error);
+      document.querySelector(
+        this.options.targetElement
+      ).innerHTML = `<p style="color: var(--text-hint);">載入失敗：${error.message}</p>`;
+    }
+  }
+
+  parse(markdown) {
+    let html = markdown;
+
+    // 處理註解（移除）
+    html = html.replace(/<!--[\s\S]*?-->/g, "");
+
+    // 處理程式碼區塊 ```...``` → pre code (要在其他處理之前)
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+      const escapedCode = code
+        .replace(/&/g, "&amp;")
+        .replace(/\x3c/g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .trimEnd();
+      return (
+        '<pre class="code-block' +
+        (lang ? " language-" + lang : "") +
+        '"><code>' +
+        escapedCode +
+        "</code></pre>"
+      );
+    });
+
+    // 處理表格
+    html = this.parseTable(html);
+
+    // 處理行內程式碼 `code` → <code>
+    html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+
+    // 處理公式區塊 $...$ → equation div
+    html = html.replace(/\$\$([^$]+)\$\$/g, '<div class="equation">$1</div>');
+
+    // 處理分頁符號 ---
+    html = html.replace(/^---$/gm, '<div class="page-break"></div>');
+
+    // 處理標題
+    // # 主標題 → title
+    html = html.replace(/^# (.+)$/gm, (_, title) => {
+      const parts = title.split("：");
+      if (parts.length > 1) {
+        return `<div class="title">${parts[0]}<br>之跨領域整合研究：<br>${parts
+          .slice(1)
+          .join("：")
+          .replace(/從(.+)到(.+)的/, "從$1到$2的<br>")}</div>`;
+      }
+      return `<div class="title">${title}</div>`;
+    });
+
+    // ## 章節標題 → h1
+    html = html.replace(/^## (.+)$/gm, "<h1>$1</h1>");
+
+    // ### 小節標題 → h2
+    html = html.replace(/^### (.+)$/gm, "<h2>$1</h2>");
+
+    // #### 子標題 → h3
+    html = html.replace(/^#### (.+)$/gm, "<h3>$1</h3>");
+
+    // 處理多行引用區塊 (連續的 > 行)
+    html = html.replace(/(?:^> .+$\n?)+/gm, (match) => {
+      const lines = match
+        .split("\n")
+        .filter((l) => l.trim())
+        .map((l) => l.replace(/^> /, ""))
+        .join("<br>");
+      return `<blockquote class="quote-block">${lines}</blockquote>`;
+    });
+
+    // 處理無序列表
+    html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
+    html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>");
+
+    // 處理有序列表
+    html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
+
+    // 先保護 pre 和 code 區塊，避免被後續處理破壞
+    const preBlocks = [];
+    html = html.replace(/<pre[\s\S]*?<\/pre>/g, (match) => {
+      preBlocks.push(match);
+      return `__PRE_BLOCK_${preBlocks.length - 1}__`;
+    });
+
+    // 處理螢光標記 ==text==
+    html = html.replace(
+      /==([^=]+)==/g,
+      '<span class="joke-highlight">$1</span>'
+    );
+
+    // 處理粗體 **text** (要在斜體之前處理)
+    html = html.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+
+    // 處理諷刺斜體 *text*
+    html = html.replace(/\*([^*]+)\*/g, '<span class="sarcasm">$1</span>');
+
+    // 處理段落（空行分隔）
+    const lines = html.split("\n");
+    let result = [];
+    let currentParagraph = [];
+
+    for (let line of lines) {
+      line = line.trim();
+
+      if (line === "") {
+        if (currentParagraph.length > 0) {
+          const content = currentParagraph.join(" ");
+          if (!content.startsWith("<")) {
+            result.push(`<p>${content}</p>`);
+          } else {
+            result.push(content);
+          }
+          currentParagraph = [];
+        }
+        continue;
+      }
+
+      if (line.startsWith("<") || line.startsWith("__PRE_BLOCK_")) {
+        if (currentParagraph.length > 0) {
+          result.push(`<p>${currentParagraph.join(" ")}</p>`);
+          currentParagraph = [];
+        }
+        result.push(line);
+      } else {
+        currentParagraph.push(line);
+      }
+    }
+
+    if (currentParagraph.length > 0) {
+      result.push(`<p>${currentParagraph.join(" ")}</p>`);
+    }
+
+    html = result.join("\n");
+
+    // 還原 pre 區塊
+    preBlocks.forEach((block, i) => {
+      html = html.replace(`__PRE_BLOCK_${i}__`, block);
+    });
+
+    // 清理多餘的空 <p> 標籤
+    html = html.replace(/<p>\s*<\/p>/g, "");
+
+    // 處理摘要區塊
+    html = this.wrapAbstract(html);
+
+    // 處理副標題
+    html = this.addSubtitle(html);
+
+    // 處理參考文獻
+    html = this.formatReferences(html);
+
+    return html;
+  }
+
+  parseTable(html) {
+    // 匹配表格：以 | 開頭的連續行
+    const tableRegex = /(?:^\|.+\|$\n?)+/gm;
+
+    return html.replace(tableRegex, (tableBlock) => {
+      const rows = tableBlock
+        .trim()
+        .split("\n")
+        .filter((r) => r.trim());
+      if (rows.length < 2) return tableBlock;
+
+      // 檢查是否有分隔行 (|---|---|)
+      const separatorIndex = rows.findIndex((r) => /^\|[\s\-:|]+\|$/.test(r));
+      if (separatorIndex === -1) return tableBlock;
+
+      let tableHtml = '<table class="md-table">';
+
+      // 處理表頭
+      const headerRow = rows.slice(0, separatorIndex);
+      if (headerRow.length > 0) {
+        tableHtml += "<thead><tr>";
+        const headerCells = this.parseTableRow(headerRow[0]);
+        headerCells.forEach((cell) => {
+          tableHtml += `<th>${cell}</th>`;
+        });
+        tableHtml += "</tr></thead>";
+      }
+
+      // 處理表身
+      const bodyRows = rows.slice(separatorIndex + 1);
+      if (bodyRows.length > 0) {
+        tableHtml += "<tbody>";
+        bodyRows.forEach((row) => {
+          tableHtml += "<tr>";
+          const cells = this.parseTableRow(row);
+          cells.forEach((cell) => {
+            tableHtml += `<td>${cell}</td>`;
+          });
+          tableHtml += "</tr>";
+        });
+        tableHtml += "</tbody>";
+      }
+
+      tableHtml += "</table>";
+      return tableHtml;
+    });
+  }
+
+  parseTableRow(row) {
+    // 移除首尾的 |，然後按 | 分割
+    return row
+      .replace(/^\||\|$/g, "")
+      .split("|")
+      .map((cell) => cell.trim());
+  }
+
+  wrapAbstract(html) {
+    const abstractMatch = html.match(
+      /<h1>摘要[\s\S]*?<\/h1>([\s\S]*?)(?=<h1>|<div class="page-break">)/
+    );
+    if (abstractMatch) {
+      const abstractContent = abstractMatch[1];
+      const wrappedAbstract = `
+        <div class="abstract">
+          <div class="abstract-title">摘要 ABSTRACT</div>
+          ${abstractContent}
+        </div>
+      `;
+      html = html.replace(
+        /<h1>摘要[\s\S]*?<\/h1>[\s\S]*?(?=<h1>|<div class="page-break">)/,
+        wrappedAbstract
+      );
+    }
+    return html;
+  }
+
+  addSubtitle(html) {
+    const titleEnd = html.indexOf("</div>");
+    if (titleEnd > -1) {
+      const afterTitle = html.substring(titleEnd + 6);
+      const subtitleMatch = afterTitle.match(
+        /^[\s\n]*<p>([^<]*A Hyper-Interdisciplinary[^<]*)<\/p>/
+      );
+      if (subtitleMatch) {
+        const subtitle = `<div class="subtitle">${subtitleMatch[1].replace(
+          /\. /g,
+          ".<br>"
+        )}</div>`;
+        html = html.replace(subtitleMatch[0], subtitle);
+      }
+    }
+    return html;
+  }
+
+  formatReferences(html) {
+    const refMatch = html.match(/<h1>參考文獻<\/h1>([\s\S]*?)$/);
+    if (refMatch) {
+      let refContent = refMatch[1];
+      refContent = refContent.replace(
+        /<li>(.+?)<\/li>/g,
+        '<div class="reference">$1</div>'
+      );
+      refContent = refContent.replace(/<ul>|<\/ul>/g, "");
+      html = html.replace(refMatch[1], refContent);
+    }
+    return html;
+  }
+
+  initEffects() {
+    const observerOptions = {
+      threshold: 0.2,
+      rootMargin: "0px 0px -50px 0px",
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+        }
+      });
+    }, observerOptions);
+
+    document.querySelectorAll("h1").forEach((h1) => {
+      observer.observe(h1);
+    });
+
+    document.querySelectorAll(".joke-highlight").forEach((el) => {
+      el.addEventListener("click", function () {
+        this.style.animation = "none";
+        this.offsetHeight;
+        this.style.animation = "bounce 0.5s ease";
+      });
+    });
+
+    // 諷刺斜體隨機 emoji
+    const sarcasmEmojis = [
+      "😏",
+      "🙄",
+      "🤔",
+      "😒",
+      "🫠",
+      "🤨",
+      "😮‍💨",
+      "🥴",
+      "😑",
+      "🫤",
+    ];
+    document.querySelectorAll(".sarcasm").forEach((el) => {
+      el.addEventListener("mouseenter", function () {
+        const randomEmoji =
+          sarcasmEmojis[Math.floor(Math.random() * sarcasmEmojis.length)];
+        this.setAttribute("data-emoji", randomEmoji);
+      });
+    });
+
+    const title = document.querySelector(".title");
+    if (title) {
+      title.addEventListener("dblclick", () => {
+        const emojis = ["🧱", "✈️", "🤔", "📚", "🎓"];
+        for (let i = 0; i < 20; i++) {
+          this.createFloatingEmoji(
+            emojis[Math.floor(Math.random() * emojis.length)]
+          );
+        }
+      });
+    }
+
+    if ("vibrate" in navigator) {
+      document.querySelectorAll(".joke-highlight, .equation").forEach((el) => {
+        el.addEventListener("touchstart", () => navigator.vibrate(10));
+      });
+    }
+  }
+
+  createFloatingEmoji(emoji) {
+    const el = document.createElement("div");
+    el.textContent = emoji;
+    el.style.cssText = `
+      position: fixed;
+      font-size: 30px;
+      left: ${Math.random() * 100}vw;
+      top: 100vh;
+      pointer-events: none;
+      z-index: 9999;
+      animation: floatUp 3s ease-out forwards;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3000);
+  }
+}
+
+// 自動載入
+document.addEventListener("DOMContentLoaded", () => {
+  const parser = new MarkdownPaperParser({
+    contentFile: "./content.md",
+    targetElement: "#content",
+  });
+  parser.load();
+});
