@@ -109,13 +109,26 @@ class MarkdownPaperParser {
     // 處理有序列表
     html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
 
-    // 處理 hover 吐槽 ~~text~~{吐槽內容}
+    // 處理嵌套標記：==~~text~~{吐槽}== 或 ~~==text==~~{吐槽}
+    // 先處理外層是螢光、內層是吐槽：==~~text~~{吐槽}==
+    html = html.replace(
+      /==~~([^~]+)~~\{([^}]+)\}==/g,
+      '<span class="joke-highlight"><span class="roast-text" data-roast="$2">$1</span></span>'
+    );
+
+    // 處理外層是吐槽、內層是螢光：~~==text==~~{吐槽}
+    html = html.replace(
+      /~~==([^=]+)==~~\{([^}]+)\}/g,
+      '<span class="roast-text" data-roast="$2"><span class="joke-highlight">$1</span></span>'
+    );
+
+    // 處理單獨的 hover 吐槽 ~~text~~{吐槽內容}
     html = html.replace(
       /~~([^~]+)~~\{([^}]+)\}/g,
       '<span class="roast-text" data-roast="$2">$1</span>'
     );
 
-    // 處理螢光標記 ==text==
+    // 處理單獨的螢光標記 ==text==
     html = html.replace(
       /==([^=]+)==/g,
       '<span class="joke-highlight">$1</span>'
