@@ -377,6 +377,44 @@ document.querySelectorAll(".joke-highlight").forEach((el) => {
       tooltip.classList.remove("show");
       currentTarget = null;
     });
+
+    // 手機觸控支援：點擊顯示，再點擊或滾動隱藏
+    el.addEventListener("touchstart", function (e) {
+      const text = this.getAttribute("data-roast");
+      if (!text) return;
+
+      // 如果已經顯示，則隱藏
+      if (currentTarget === this && tooltip.classList.contains("show")) {
+        tooltip.classList.remove("show");
+        currentTarget = null;
+        return;
+      }
+
+      currentTarget = this;
+      const touch = e.touches[0];
+      tooltip.textContent = "「" + text + "」";
+      showTooltip(touch.clientX, touch.clientY);
+    });
+  });
+
+  // 滾動時隱藏 tooltip
+  window.addEventListener(
+    "scroll",
+    function () {
+      if (tooltip.classList.contains("show")) {
+        tooltip.classList.remove("show");
+        currentTarget = null;
+      }
+    },
+    { passive: true }
+  );
+
+  // 點擊其他地方隱藏 tooltip（手機用）
+  document.addEventListener("touchstart", function (e) {
+    if (currentTarget && !currentTarget.contains(e.target)) {
+      tooltip.classList.remove("show");
+      currentTarget = null;
+    }
   });
 
   function showTooltip(x, y) {
