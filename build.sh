@@ -70,19 +70,19 @@ cat > index.html << 'EOF'
     <link rel="icon" href="./favicon.png" type="image/png">
     
     <!-- Open Graph -->
-    <meta property="og:title" content="飛機磚頭問題之跨領域研究">
-    <meta property="og:description" content="一篇用50個學科分析「100-1=?」的學術論文。從量子力學到倫理學，認真探討一個不需要探討的問題。">
+    <meta property="og:title" content="論「飛機上有100個磚頭掉了一個剩幾個」之跨領域整合研究">
+    <meta property="og:description" content="本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。但更重要的是，我們證明了學術界真的很閒。">
     <meta property="og:type" content="article">
     <meta property="og:locale" content="zh_TW">
     <meta property="og:image" content="https://brick.n1cat.xyz/OG/og-image.png">
     
     <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="飛機磚頭問題之跨領域研究">
-    <meta name="twitter:description" content="一篇用50個學科分析「100-1=?」的學術論文。">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="論「飛機上有100個磚頭掉了一個剩幾個」之跨領域整合研究">
+    <meta name="twitter:description" content="本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。但更重要的是，我們證明了學術界真的很閒。">
     <meta name="twitter:image" content="https://brick.n1cat.xyz/OG/og-image.png">
     
-    <meta name="description" content="一篇用50個學科分析「飛機上100個磚頭掉了一個剩幾個」的學術論文。">
+    <meta name="description" content="本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。但更重要的是，我們證明了學術界真的很閒。">
     
     <link rel="stylesheet" href="./styles.css">
 </head>
