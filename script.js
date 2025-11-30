@@ -214,10 +214,23 @@ function triggerZeroEasterEgg() {
     const message = document.createElement("div");
     message.className = "zero-message";
     message.innerHTML = `
-      <div class="zero-title">🎉 恭喜你！</div>
+      <div class="zero-title">🪦 全員陣亡</div>
       <div class="zero-text">你成功把所有磚頭都丟掉了</div>
       <div class="zero-subtext">這證明了你真的很閒</div>
-      <button class="zero-btn" onclick="location.reload()">🔄 再來一次</button>
+      <div class="zero-family">
+        <div class="family-title">🧱 磚頭遺族聲明 🧱</div>
+        <div class="family-quote">「我是磚頭#37的表親，磚頭#52。#37生前夢想是成為長城的一部分。現在牠躺在太平洋底，而你們卻在這裡點擊消費牠的不幸。」</div>
+        <div class="family-member">—— 磚頭#52，原本仍在飛機上，現已被你丟下去</div>
+        <div class="family-quote">「⋯⋯」</div>
+        <div class="family-member">—— 磚頭#37（化名），太平洋海底，由海藻代筆</div>
+        <div class="family-quote">「自從#37掉下去後，我再也無法信任任何飛機。現在我也掉下去了，至少不用再恐懼了。」</div>
+        <div class="family-member">—— 磚頭#42，生前診斷為航空信任缺失障礙（ATDD）</div>
+        <div class="family-quote">「我根本不是磚頭，我是紅土色的瑜珈磚！我被誤抓上飛機的！」</div>
+        <div class="family-member">—— 物體#88，經DNA鑑定確認是磚頭，但牠至死拒絕接受結果</div>
+        <div class="family-quote">「#37欠我50塊錢還沒還，現在大家都掉下去了，我找誰要？」</div>
+        <div class="family-member">—— 磚頭#15，生前正在諮詢律師（律師說案子太荒謬拒絕接）</div>
+      </div>
+      <button class="zero-btn" onclick="location.reload()">🔄 重新投胎 100 塊磚頭</button>
     `;
     document.body.appendChild(message);
   }, 3500);
@@ -364,3 +377,62 @@ function createFloatingEmoji(emoji) {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 3000);
 }
+
+// 目錄功能：平滑滾動 + 章節展開/收合
+(function setupToc() {
+  // 平滑滾動跳轉
+  const tocLinks = document.querySelectorAll(".toc-link");
+  tocLinks.forEach((link) => {
+    link.addEventListener("click", function (e) {
+      e.preventDefault();
+
+      const targetId = this.getAttribute("href").substring(1);
+      const targetElement = document.getElementById(targetId);
+
+      if (targetElement) {
+        const headerOffset = 80;
+        const elementPosition = targetElement.getBoundingClientRect().top;
+        const offsetPosition =
+          elementPosition + window.pageYOffset - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth",
+        });
+
+        // 滾動完成後高亮目標
+        setTimeout(() => {
+          targetElement.classList.add("toc-target-highlight");
+          setTimeout(() => {
+            targetElement.classList.remove("toc-target-highlight");
+          }, 1500);
+        }, 500);
+      }
+    });
+  });
+
+  // 章節展開/收合
+  const toggleBtns = document.querySelectorAll(".toc-toggle");
+  toggleBtns.forEach((btn) => {
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+
+      const chapter = this.closest(".toc-chapter");
+      const subitems = chapter.querySelector(".toc-subitems");
+
+      if (subitems) {
+        const isCollapsed = subitems.classList.contains("collapsed");
+
+        if (isCollapsed) {
+          subitems.classList.remove("collapsed");
+          this.classList.remove("collapsed");
+          this.textContent = "▼";
+        } else {
+          subitems.classList.add("collapsed");
+          this.classList.add("collapsed");
+          this.textContent = "▶";
+        }
+      }
+    });
+  });
+})();

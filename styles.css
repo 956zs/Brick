@@ -583,6 +583,40 @@ p {
     transform: scale(1.05);
 }
 
+/* 磚頭家族感言 */
+.zero-family {
+    background: var(--abstract-bg);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: left;
+    border-left: 4px solid var(--border-color);
+}
+
+.family-title {
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    color: var(--text-color);
+}
+
+.family-quote {
+    font-style: italic;
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 8px 0 4px 0;
+    padding-left: 10px;
+    border-left: 2px solid var(--btn-bg);
+}
+
+.family-member {
+    font-size: 11px;
+    color: var(--text-hint);
+    text-align: right;
+    margin-bottom: 10px;
+}
+
 @keyframes popIn {
     0% {
         transform: translate(-50%, -50%) scale(0);
@@ -1308,27 +1342,50 @@ details .md-table td:nth-child(2) {
     }
 }
 
-/* 目錄樣式 - 學術論文風格 */
+/* 目錄樣式 - 專業學術論文風格 */
 .toc-details {
     background: var(--paper-bg);
-    border: 2px solid var(--border-color);
-    margin: 40px 0;
+    border: 1px solid var(--border-color);
+    margin: 50px 0;
     overflow: hidden;
     page-break-inside: avoid;
+    box-shadow: 0 2px 12px var(--shadow-color);
+    position: relative;
+}
+
+/* 裝飾線 */
+.toc-details::before,
+.toc-details::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border-color), transparent);
+}
+
+.toc-details::before {
+    top: 0;
+}
+
+.toc-details::after {
+    bottom: 0;
 }
 
 .toc-details summary {
     background: var(--paper-bg);
     color: var(--text-color);
-    padding: 20px 30px;
+    padding: 25px 30px;
     cursor: pointer;
     font-weight: bold;
-    font-size: 14pt;
+    font-size: 16pt;
     text-align: center;
-    letter-spacing: 0.5em;
-    border-bottom: 2px solid var(--border-color);
+    letter-spacing: 1em;
+    border-bottom: 1px solid var(--border-color);
     transition: all 0.3s ease;
     list-style: none;
+    position: relative;
 }
 
 .toc-details summary::-webkit-details-marker {
@@ -1339,18 +1396,28 @@ details .md-table td:nth-child(2) {
     content: none;
 }
 
+/* 標題裝飾 */
+.toc-details summary::after {
+    content: '◆';
+    display: block;
+    font-size: 8pt;
+    letter-spacing: 0.5em;
+    color: var(--border-color);
+    margin-top: 8px;
+}
+
 .toc-details summary:hover {
     background: var(--abstract-bg);
 }
 
 .toc-details[open] summary {
-    border-bottom: 2px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 .toc-nav {
     display: flex;
     flex-direction: column;
-    padding: 25px 40px;
+    padding: 30px 50px;
     gap: 0;
     max-height: 500px;
     overflow-y: auto;
@@ -1360,34 +1427,70 @@ details .md-table td:nth-child(2) {
 .toc-link {
     color: var(--text-color);
     text-decoration: none;
-    padding: 10px 0;
+    padding: 12px 15px;
     font-size: 11pt;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border-bottom: 1px dotted var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    position: relative;
+    background: transparent;
 }
 
 .toc-link:last-child {
     border-bottom: none;
 }
 
+/* Hover 效果 - 左側指示條 */
+.toc-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0);
+    width: 3px;
+    height: 60%;
+    background: var(--btn-bg);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 2px;
+}
+
+.toc-link:hover::before {
+    transform: translateY(-50%) scaleY(1);
+}
+
 .toc-link:hover {
     color: var(--btn-hover);
-    background: transparent;
-    padding-left: 10px;
+    background: var(--abstract-bg);
+    padding-left: 20px;
+}
+
+/* 點擊時的視覺反饋 */
+.toc-link:active {
+    transform: scale(0.98);
+    background: var(--highlight-bg);
 }
 
 /* 子項目縮排 */
 .toc-link.toc-sub {
-    padding-left: 30px;
+    padding-left: 40px;
     font-size: 10pt;
     color: var(--text-secondary);
+    border-bottom: 1px dotted transparent;
+    border-left: 1px solid var(--border-color);
+    margin-left: 20px;
+}
+
+.toc-link.toc-sub::before {
+    left: -1px;
+    width: 2px;
 }
 
 .toc-link.toc-sub:hover {
-    padding-left: 40px;
+    padding-left: 50px;
+    color: var(--btn-hover);
+    border-left-color: var(--btn-bg);
 }
 
 /* 滾動條樣式 */
@@ -1408,16 +1511,122 @@ details .md-table td:nth-child(2) {
     background: var(--btn-bg);
 }
 
+/* 跳轉目標高亮動畫 */
+@keyframes targetHighlight {
+    0% {
+        background: var(--highlight-bg);
+        box-shadow: 0 0 0 4px var(--highlight-bg);
+    }
+
+    100% {
+        background: transparent;
+        box-shadow: 0 0 0 0 transparent;
+    }
+}
+
+.toc-target-highlight {
+    animation: targetHighlight 1.5s ease-out;
+}
+
+/* 章節展開/收合結構 */
+.toc-chapter {
+    border-bottom: 1px dotted var(--border-color);
+}
+
+.toc-chapter:last-child {
+    border-bottom: none;
+}
+
+.toc-chapter-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toc-chapter-header .toc-link {
+    flex: 1;
+    border-bottom: none;
+}
+
+.toc-toggle {
+    background: transparent;
+    border: none;
+    color: var(--text-hint);
+    cursor: pointer;
+    padding: 8px 12px;
+    font-size: 10px;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.toc-toggle:hover {
+    background: var(--abstract-bg);
+    color: var(--btn-hover);
+}
+
+.toc-toggle.collapsed {
+    transform: rotate(-90deg);
+}
+
+/* 子項目容器 */
+.toc-subitems {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: 500px;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.3s ease,
+        padding 0.3s ease;
+    opacity: 1;
+    padding-left: 15px;
+    border-left: 2px solid var(--border-color);
+    margin-left: 15px;
+    margin-bottom: 10px;
+}
+
+.toc-subitems.collapsed {
+    max-height: 0;
+    opacity: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+}
+
+.toc-subitems .toc-link.toc-sub {
+    margin-left: 0;
+    border-left: none;
+    padding-left: 15px;
+}
+
+.toc-subitems .toc-link.toc-sub:hover {
+    padding-left: 25px;
+}
+
 /* 響應式 */
 @media screen and (max-width: 768px) {
+    .toc-details {
+        margin: 30px 0;
+    }
+
+    .toc-details summary {
+        padding: 18px 20px;
+        font-size: 14pt;
+        letter-spacing: 0.5em;
+    }
+
     .toc-nav {
-        max-height: 300px;
-        padding: 12px 15px;
+        max-height: 350px;
+        padding: 20px 25px;
     }
 
     .toc-link {
-        font-size: 9pt;
-        padding: 6px 10px;
+        font-size: 10pt;
+        padding: 10px 12px;
+    }
+
+    .toc-link.toc-sub {
+        padding-left: 30px;
+        margin-left: 15px;
     }
 }
 

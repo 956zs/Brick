@@ -367,6 +367,7 @@ class MarkdownPaperParser {
 
   // 目錄區塊解析
   // 語法：:::toc{title="標題"}...:::
+  // 支援章節展開/收合子項目
   parseTocBlock(html) {
     const tocRegex = /:::toc\{title="([^"]+)"\}\n([\s\S]*?):::/g;
 
@@ -377,14 +378,50 @@ class MarkdownPaperParser {
 <nav class="toc-nav">`;
 
       const lines = content.trim().split("\n");
+      let currentChapter = null;
+      let subItems = [];
+
+      const flushChapter = () => {
+        if (currentChapter) {
+          if (subItems.length > 0) {
+            // 有子項目，用可展開的結構
+            tocHtml += `<div class="toc-chapter">`;
+            tocHtml += `<div class="toc-chapter-header">`;
+            tocHtml += `<a class="toc-link toc-main" href="#${currentChapter.anchor}">${currentChapter.text}</a>`;
+            tocHtml += `<button class="toc-toggle" aria-label="展開子項目">▼</button>`;
+            tocHtml += `</div>`;
+            tocHtml += `<div class="toc-subitems">`;
+            for (const sub of subItems) {
+              tocHtml += `<a class="toc-link toc-sub" href="#${sub.anchor}">${sub.text}</a>`;
+            }
+            tocHtml += `</div></div>`;
+          } else {
+            // 沒有子項目，直接顯示
+            tocHtml += `<a class="toc-link toc-main" href="#${currentChapter.anchor}">${currentChapter.text}</a>`;
+          }
+        }
+        currentChapter = null;
+        subItems = [];
+      };
+
       for (const line of lines) {
-        // - [文字](#anchor)
-        const linkMatch = line.match(/^- \[([^\]]+)\]\(#([^)]+)\)$/);
-        if (linkMatch) {
-          const [, text, anchor] = linkMatch;
-          tocHtml += `<a class="toc-link" href="#${anchor}">${text}</a>`;
+        // 子項目：  - [文字](#anchor)
+        const subMatch = line.match(/^(\s+)- \[([^\]]+)\]\(#([^)]+)\)$/);
+        if (subMatch) {
+          const [, , text, anchor] = subMatch;
+          subItems.push({ text, anchor });
+          continue;
+        }
+
+        // 主項目：- [文字](#anchor)
+        const mainMatch = line.match(/^- \[([^\]]+)\]\(#([^)]+)\)$/);
+        if (mainMatch) {
+          flushChapter();
+          const [, text, anchor] = mainMatch;
+          currentChapter = { text, anchor };
         }
       }
+      flushChapter();
 
       tocHtml += `
 </nav>
