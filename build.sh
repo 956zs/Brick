@@ -161,7 +161,7 @@ cat > index.html << 'EOF'
     }
     </script>
     
-    <link rel="stylesheet" href="./styles.css">
+    <link rel="stylesheet" href="./styles.min.css">
 </head>
 <body>
     <div class="progress-bar" id="progressBar"></div>
@@ -207,7 +207,20 @@ EOF
 # 清理暫存檔
 rm -f .tmp_rendered_content.html
 
-echo -e "${GREEN}✓ 編譯完成！${NC}"
+echo -e "${GREEN}✓ HTML 編譯完成！${NC}"
+
+# 壓縮 CSS
+echo -e "${YELLOW}🎨 壓縮 CSS...${NC}"
+if command -v cleancss &> /dev/null; then
+    cleancss -O2 -o styles.min.css styles.css
+    CSS_ORIGINAL=$(wc -c < styles.css)
+    CSS_MINIFIED=$(wc -c < styles.min.css)
+    CSS_SAVED=$((CSS_ORIGINAL - CSS_MINIFIED))
+    echo -e "${GREEN}✓ CSS 壓縮完成 (節省 ${CSS_SAVED} bytes)${NC}"
+else
+    echo -e "${YELLOW}⚠ 未安裝 clean-css-cli，跳過 CSS 壓縮${NC}"
+    echo -e "${YELLOW}  安裝方式: npm install -g clean-css-cli${NC}"
+fi
 
 # 顯示檔案大小
 SIZE=$(du -h index.html | cut -f1)
@@ -225,4 +238,4 @@ if [ -f "$BACKUP_NAME" ]; then
 fi
 echo "================================"
 echo -e "${YELLOW}提示: 編譯後的 HTML 是純靜態的，不需要 md-parser.js${NC}"
-echo -e "${YELLOW}      部署時需要一起上傳: styles.css, script.js, favicon.png${NC}"
+echo -e "${YELLOW}      部署時需要一起上傳: styles.min.css, script.js, favicon.png${NC}"
