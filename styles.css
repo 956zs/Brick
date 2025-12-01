@@ -699,6 +699,71 @@ p {
     }
 }
 
+/* 手機響應式 - 磚頭彩蛋 */
+@media screen and (max-width: 768px) {
+    .zero-message {
+        padding: 25px 20px;
+        width: 90vw;
+        max-width: 350px;
+        max-height: 85vh;
+        overflow-y: auto;
+    }
+
+    .zero-title {
+        font-size: 24px;
+        margin-bottom: 10px;
+    }
+
+    .zero-text {
+        font-size: 14px;
+    }
+
+    .zero-subtext {
+        font-size: 12px;
+        margin-bottom: 15px;
+    }
+
+    .zero-family {
+        padding: 15px;
+        margin: 15px 0;
+    }
+
+    .family-title {
+        font-size: 12px;
+        margin-bottom: 10px;
+    }
+
+    .family-quote {
+        font-size: 11px;
+        padding-left: 8px;
+    }
+
+    .family-member {
+        font-size: 10px;
+        margin-bottom: 8px;
+    }
+
+    .zero-btn {
+        padding: 10px 25px;
+        font-size: 14px;
+        /* 移除觸控反白 */
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* 移除所有按鈕的觸控反白 */
+button,
+.zero-btn,
+.theme-toggle,
+.back-to-top,
+.toc-toggle,
+.lightbox-close,
+.brick-counter {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    user-select: none;
+}
+
 @keyframes rainbow {
     0% {
         filter: hue-rotate(0deg);
