@@ -550,3 +550,61 @@ function createFloatingEmoji(emoji) {
     });
   });
 })();
+
+// 圖片放大 Lightbox
+(function setupLightbox() {
+  const images = document.querySelectorAll(".md-figure img");
+  if (images.length === 0) return;
+
+  // 建立 lightbox 元素
+  const overlay = document.createElement("div");
+  overlay.className = "lightbox-overlay";
+  overlay.innerHTML = `
+    <button class="lightbox-close" aria-label="關閉">×</button>
+    <div class="lightbox-content">
+      <img src="" alt="">
+      <div class="lightbox-caption"></div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const lightboxImg = overlay.querySelector(".lightbox-content img");
+  const lightboxCaption = overlay.querySelector(".lightbox-caption");
+  const closeBtn = overlay.querySelector(".lightbox-close");
+
+  // 點擊圖片開啟 lightbox
+  images.forEach((img) => {
+    img.addEventListener("click", function () {
+      lightboxImg.src = this.src;
+      lightboxImg.alt = this.alt;
+
+      // 取得 figcaption
+      const figure = this.closest(".md-figure");
+      const caption = figure ? figure.querySelector("figcaption") : null;
+      lightboxCaption.textContent = caption ? caption.textContent : "";
+
+      overlay.classList.add("show");
+      document.body.style.overflow = "hidden";
+    });
+  });
+
+  // 關閉 lightbox
+  function closeLightbox() {
+    overlay.classList.remove("show");
+    document.body.style.overflow = "";
+  }
+
+  closeBtn.addEventListener("click", closeLightbox);
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) {
+      closeLightbox();
+    }
+  });
+
+  // ESC 鍵關閉
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && overlay.classList.contains("show")) {
+      closeLightbox();
+    }
+  });
+})();
