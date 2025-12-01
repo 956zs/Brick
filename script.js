@@ -7,9 +7,9 @@
 
   if (!charCountEl) return;
 
-  // 從頁面內容動態計算字數
+  // 從頁面內容動態計算字數（使用 textContent 避免強制重排）
   const content = document.getElementById("content");
-  const text = content ? content.innerText : "";
+  const text = content ? content.textContent : "";
 
   // 計算中文字數（匹配中文字符）
   const chineseChars = (text.match(/[\u4e00-\u9fff]/g) || []).length;

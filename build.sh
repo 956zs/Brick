@@ -161,7 +161,12 @@ cat > index.html << 'EOF'
     }
     </script>
     
-    <link rel="stylesheet" href="./styles.min.css">
+    <!-- 關鍵 CSS 內嵌，避免轉譯阻塞 -->
+    <style>
+    *{box-sizing:border-box}:root{--bg-color:#FAF7F5;--paper-bg:#FFFFFF;--text-color:#4A3A3A;--text-secondary:#7A6B6B;--border-color:#E8C5C5;--abstract-bg:#F5E8E8;--shadow-color:rgba(232,197,197,0.15);--btn-bg:#C5B8C8}[data-theme="dark"]{--bg-color:#1F1818;--paper-bg:#2A2020;--text-color:#EBE0E0;--text-secondary:#C8B8B8;--border-color:#B89898;--abstract-bg:#352525;--shadow-color:rgba(0,0,0,0.4);--btn-bg:#C8A8B8}body{font-family:"Times New Roman","SimSun",serif;line-height:1.8;max-width:960px;margin:0 auto;padding:20mm;background:var(--bg-color);color:var(--text-color)}.paper{background:var(--paper-bg);padding:2.5cm;box-shadow:0 0 10px var(--shadow-color);margin-bottom:20px}.title{text-align:center;font-size:20pt;font-weight:bold;margin-bottom:30px;line-height:1.5}
+    </style>
+    <link rel="stylesheet" href="./styles.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="./styles.min.css"></noscript>
 </head>
 <body>
     <div class="progress-bar" id="progressBar"></div>
@@ -199,7 +204,7 @@ cat >> index.html << 'EOF'
     </article>
     </main>
 
-    <script src="./script.js"></script>
+    <script src="./script.js" defer></script>
 </body>
 </html>
 EOF
