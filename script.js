@@ -76,11 +76,13 @@
 
 // 主題切換功能
 const themeToggle = document.getElementById("themeToggle");
-const savedTheme = localStorage.getItem("theme") || "light";
+const savedTheme = localStorage.getItem("theme") || "dark";
 
 if (savedTheme === "dark") {
   document.documentElement.setAttribute("data-theme", "dark");
   themeToggle.textContent = "☀️";
+} else {
+  themeToggle.textContent = "🌙";
 }
 
 themeToggle.addEventListener("click", function () {
