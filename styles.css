@@ -384,6 +384,15 @@ p {
     opacity: 0;
     transform: scale(0.8);
     transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    max-width: calc(100vw - 24px);
+}
+
+/* 手機上允許換行 */
+@media screen and (max-width: 768px) {
+    .roast-tooltip {
+        white-space: normal;
+        max-width: calc(100vw - 24px);
+    }
 }
 
 .roast-tooltip.show {
@@ -825,7 +834,7 @@ button,
     background: var(--counter-bg);
     padding: 15px 20px;
     border-radius: 10px;
-    box-shadow: 0 4px 20px var(--shadow-color);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     z-index: 1000;
     font-family: 'Arial', sans-serif;
     opacity: 0;
@@ -834,6 +843,10 @@ button,
     user-select: none;
     -webkit-user-select: none;
     cursor: pointer;
+}
+
+[data-theme="dark"] .brick-counter {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .brick-counter.show {
