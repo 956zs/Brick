@@ -177,11 +177,26 @@ class MarkdownPaperParser {
     });
 
     // 處理無序列表
-    html = html.replace(/^- (.+)$/gm, "<li>$1</li>");
-    html = html.replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>");
+    html = html.replace(/^- (.+)$/gm, "{{UL_ITEM}}$1{{/UL_ITEM}}");
 
     // 處理有序列表
-    html = html.replace(/^\d+\. (.+)$/gm, "<li>$1</li>");
+    html = html.replace(/^\d+\. (.+)$/gm, "{{OL_ITEM}}$1{{/OL_ITEM}}");
+
+    // 包裝連續的無序列表項目
+    html = html.replace(/({{UL_ITEM}}.*?{{\/UL_ITEM}}\n?)+/g, (match) => {
+      const items = match
+        .replace(/{{UL_ITEM}}/g, "<li>")
+        .replace(/{{\/UL_ITEM}}/g, "</li>");
+      return "<ul>" + items + "</ul>";
+    });
+
+    // 包裝連續的有序列表項目
+    html = html.replace(/({{OL_ITEM}}.*?{{\/OL_ITEM}}\n?)+/g, (match) => {
+      const items = match
+        .replace(/{{OL_ITEM}}/g, "<li>")
+        .replace(/{{\/OL_ITEM}}/g, "</li>");
+      return "<ol>" + items + "</ol>";
+    });
 
     // 先保護 pre 和 code 區塊，避免被後續處理破壞
     const preBlocks = [];

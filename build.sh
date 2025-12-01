@@ -68,21 +68,98 @@ cat > index.html << 'EOF'
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>論「飛機上面有100個磚頭掉了一個剩幾個」之跨領域整合研究</title>
     <link rel="icon" href="./favicon.png" type="image/png">
+    <link rel="canonical" href="https://brick.n1cat.xyz/">
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。但更重要的是，我們證明了學術界真的很閒。">
+    <meta name="keywords" content="磚頭,飛機,100-1,學術論文,跨領域研究,數學,物理學,哲學,搞笑論文,學術諷刺,99,減法">
+    <meta name="author" content="虛構研究團隊">
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
     
     <!-- Open Graph -->
     <meta property="og:title" content="論「飛機上有100個磚頭掉了一個剩幾個」之跨領域整合研究">
     <meta property="og:description" content="本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。但更重要的是，我們證明了學術界真的很閒。">
     <meta property="og:type" content="article">
     <meta property="og:locale" content="zh_TW">
+    <meta property="og:url" content="https://brick.n1cat.xyz/">
+    <meta property="og:site_name" content="磚頭研究所">
     <meta property="og:image" content="https://brick.n1cat.xyz/OG/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="飛機上有100個磚頭掉了一個剩幾個？答案是99。">
+    <meta property="article:published_time" content="2025-11-28">
+    <meta property="article:author" content="虛構研究團隊">
+    <meta property="article:section" content="學術研究">
+    <meta property="article:tag" content="磚頭">
+    <meta property="article:tag" content="學術諷刺">
+    <meta property="article:tag" content="跨領域研究">
     
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="論「飛機上有100個磚頭掉了一個剩幾個」之跨領域整合研究">
     <meta name="twitter:description" content="本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。但更重要的是，我們證明了學術界真的很閒。">
     <meta name="twitter:image" content="https://brick.n1cat.xyz/OG/og-image.png">
+    <meta name="twitter:image:alt" content="飛機上有100個磚頭掉了一個剩幾個？答案是99。">
     
-    <meta name="description" content="本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。但更重要的是，我們證明了學術界真的很閒。">
+    <!-- Structured Data - Article -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": "論「飛機上面有100個磚頭掉了一個剩幾個」之跨領域整合研究",
+        "description": "本研究動員數學、量子力學、哲學、古生物學等50個領域，耗時3個月，終於證明：答案是99。",
+        "image": "https://brick.n1cat.xyz/OG/og-image.png",
+        "author": {
+            "@type": "Organization",
+            "name": "虛構研究團隊"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "磚頭研究所",
+            "logo": {
+                "@type": "ImageObject",
+                "url": "https://brick.n1cat.xyz/favicon.png"
+            }
+        },
+        "datePublished": "2025-11-28",
+        "dateModified": "2025-12-01",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https://brick.n1cat.xyz/"
+        },
+        "keywords": ["磚頭", "飛機", "學術論文", "跨領域研究", "數學", "物理學", "哲學"],
+        "articleSection": "學術研究",
+        "wordCount": "18000",
+        "inLanguage": "zh-TW"
+    }
+    </script>
+    
+    <!-- Structured Data - FAQ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+            {
+                "@type": "Question",
+                "name": "飛機上有100個磚頭掉了一個剩幾個？",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "答案是99個。但如果你夠無聊，可以找到至少50種理由質疑這個答案。"
+                }
+            },
+            {
+                "@type": "Question",
+                "name": "這篇論文是認真的嗎？",
+                "acceptedAnswer": {
+                    "@type": "Answer",
+                    "text": "是的，我們非常認真地在不認真。這是一種後現代的認真，一種解構主義的嚴肅。"
+                }
+            }
+        ]
+    }
+    </script>
     
     <link rel="stylesheet" href="./styles.css">
 </head>
@@ -90,14 +167,15 @@ cat > index.html << 'EOF'
     <div class="progress-bar" id="progressBar"></div>
     <button class="theme-toggle" id="themeToggle" aria-label="切換主題">🌙</button>
     
-    <div class="brick-counter" id="brickCounter">
+    <div class="brick-counter" id="brickCounter" role="status" aria-live="polite">
         <span class="count" id="brickCount">100</span>
         <span class="label">磚頭剩餘數量</span>
     </div>
 
     <button class="back-to-top" id="backToTop" aria-label="回到頂部">↑</button>
 
-    <div class="paper" id="content">
+    <main>
+    <article class="paper" id="content">
 <div class="reading-stats" id="readingStats">
   <div class="stats-row">
     <span class="stat-item">📝 中文 <span id="charCount">0</span> 字</span>
@@ -118,7 +196,8 @@ EOF
 cat .tmp_rendered_content.html >> index.html
 
 cat >> index.html << 'EOF'
-    </div>
+    </article>
+    </main>
 
     <script src="./script.js"></script>
 </body>
